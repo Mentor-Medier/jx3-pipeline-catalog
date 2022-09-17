@@ -8,6 +8,12 @@ spec:
     env:
     - name: HOME
       value: /tekton/home
+    - name: AWS_SDK_LOAD_CONFIG
+      value: "true"
+    - name: AWS_EC2_METADATA_DISABLED
+      value: "true"
+    - name: AWS_ECR_DISABLE_CACHE
+      value: "true"
     envFrom:
     - secretRef:
         name: jx-boot-job-env-vars
@@ -16,13 +22,13 @@ spec:
     resources: {}
     workingDir: /workspace/source
   steps:
-  - image: gcr.io/kaniko-project/executor:v1.8.0-debug
+  - image: gcr.io/kaniko-project/executor:v1.8.1-debug
     name: build-container
     resources: {}
     script: |
       #!/busybox/sh
       source .jx/variables.sh
-      cp /tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson /kaniko/.docker/config.json
+      cat .jx/variables.sh
       /kaniko/executor $KANIKO_FLAGS --context=/workspace/source --dockerfile=${DOCKERFILE_PATH:-Dockerfile} --destination=$PUSH_CONTAINER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:$VERSION --no-push --tarPath image.tar
       cp /kaniko/docker-credential-gcr /workspace/source
       cp /kaniko/docker-credential-ecr-login /workspace/source
@@ -61,14 +67,16 @@ spec:
       #!/busybox/sh
       source .jx/variables.sh
       export PATH=/workspace/source:$PATH
+      mkdir -p ~/.docker
       cp /tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson ~/.docker/config.json
-      crane push /workspace/source/image.tar $PUSH_CONTAINER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:$VERSION
+      crane push /workspace/source/image.tar $PUSH_CONTAINER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:$VERSION 
   - image: ghcr.io/jenkins-x/cosign:v0.3.1-0.0.3
     name: sign-and-push-signature-and-cleanup
     resources: {}
     script: |
       #!/busybox/sh
       source .jx/variables.sh
+      mkdir -p ~/.docker/
       cp /tekton/creds-secrets/tekton-container-registry-auth/.dockerconfigjson ~/.docker/config.json
       cosign sign --key k8s://jx/cosign $PUSH_CONTAINER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:$VERSION
       cosign verify --key k8s://jx/cosign $PUSH_CONTAINER_REGISTRY/$DOCKER_REGISTRY_ORG/$APP_NAME:$VERSION
@@ -77,3 +85,6 @@ spec:
   - description: Build, scan and push to the registry
     mountPath: /workspace
     name: output
+    podTemplate: {}
+  serviceAccountName: tekton-bot
+  timeout: 12h0m0s
