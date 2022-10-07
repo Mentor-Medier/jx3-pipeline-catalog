@@ -41,6 +41,12 @@ spec:
             #!/bin/sh
             npm install
         - image: node:16-slim
+          name: build-yarn-install
+          resources: {}
+          script: |
+            #!/bin/sh
+            yarn
+        - image: node:16-slim
           name: build-npm-test
           resources: {}
           script: |
