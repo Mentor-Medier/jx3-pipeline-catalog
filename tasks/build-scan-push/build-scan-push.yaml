@@ -47,7 +47,7 @@ spec:
     name: vulnscan
     resources: {}
     script: |
-      trivy image --skip-db-update --timeout 10m0s --input /workspace/source/image.tar > /workspace/source/scanresults.txt
+      trivy image --skip-db-update --timeout 10m0s --offline-scan --input /workspace/source/image.tar > /workspace/source/scanresults.txt
   - image: ghcr.io/jenkins-x/jx-boot:3.10.45
     name: analyze
     resources: {}
