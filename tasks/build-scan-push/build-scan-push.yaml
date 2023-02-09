@@ -20,7 +20,11 @@ spec:
         name: jx-boot-job-env-vars
         optional: true
     name: ""
-    resources: {}
+    resources:
+      requests:
+        cpu: 50m
+        memory: 50Mi
+
     workingDir: /workspace/source
   steps:
   - image: gcr.io/kaniko-project/executor:v1.9.1-debug
