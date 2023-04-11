@@ -49,7 +49,7 @@ spec:
     resources: {}
     script: |
       trivy image --skip-db-update  --skip-java-db-update --timeout 10m0s --input /workspace/source/image.tar > /workspace/source/scanresults.txt
-  - image: ghcr.io/jenkins-x/jx-boot:3.10.45
+  - image: ghcr.io/jenkins-x/jx-boot:3.10.83
     name: analyze
     resources: {}
     script: |
